@@ -22,11 +22,15 @@ class Vehicle:
         self.capacity = capacity
         self.packages = []
 
+## Global Declarations
+packages =[]
+vehicles =[]
+packages_file = "C:\\Users\\HP\\Documents\\GitHub\\Artificial_Intelligence\\packages.txt"
+vehicles_file = "C:\\Users\\HP\\Documents\\GitHub\\Artificial_Intelligence\\vehicles.txt"
 
 def calculate_distance(x1, y1, x2, y2):
     return math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
-packages =[]
-vehicles =[]
+
 def take_package_data():
     num_packages=int (input("Enter the number of packages:"))
     print("Enter the following data for all packages: -priority  -weight  -destination(x,y):")
@@ -193,30 +197,66 @@ def simulated_annealing(initial_solution, vehicles):
 
 def display_menu():
    # print("Welcome, Choose an Algorithm from the following:\n1-simulated annealing.\n2-Genetic algorithm.")
-    choise= int(input( "Welcome, Choose an Algorithm from the following:\n1-simulated annealing.\n2-Genetic algorithm."))
+    choise= int(input( "Welcome, Choose an Algorithm from the following:\n1-simulated annealing.\n2-Genetic algorithm.\n"))
 
-    take_package_data()
-    take_vehicle_data()
-    if (choise==1):
-            print("You chose Simulated Annealing.")
-            initial = generate_random_initial_state(packages, vehicles)
-            print("\nInitial solution:")
-            for vid, packs in initial.items():
-                print(f"Vehicle {vid}: {[p.id for p in packs]}")
-            print(f"Initial total distance: {total_distance(initial):.2f} km")
+    if (choise==1):  
+        take_package_data()
+        take_vehicle_data()
+        print("You chose Simulated Annealing.")
+        initial = generate_random_initial_state(packages, vehicles)
+        print("\nInitial solution:")
+        for vid, packs in initial.items():
+            print(f"Vehicle {vid}: {[p.id for p in packs]}")
+        print(f"Initial total distance: {total_distance(initial):.2f} km")
 
-            best_solution, best_cost = simulated_annealing(initial,vehicles)
+        best_solution, best_cost = simulated_annealing(initial,vehicles)
 
-            print("\nOptimized solution:")
-            for vid, packs in best_solution.items():
-                print(f"Vehicle {vid}: {[p.id for p in packs]}")
-            print(f"\nOptimized total distance: {best_cost:.2f} km")
+        print("\nOptimized solution:")
+        for vid, packs in best_solution.items():
+            print(f"Vehicle {vid}: {[p.id for p in packs]}")
+        print(f"\nOptimized total distance: {best_cost:.2f} km")
 
     elif(choise==2):
-        print("you choose 2")
+        genetic_algorithm()
+    else:
+        print("Invalid algorithm!\n")
 
-def main():
-    display_menu()
+## Function to upload data from file
+def upload_data():
+    index = 1
+    # upload packages from file
+    with open(packages_file, 'r') as file:
+        for line in file:
+            data = line.strip().split()
+            # create object with packet data
+            pkg = Package(index, int(data[2]), int(data[3]), int(data[1]), int(data[0]))
+            packages.append(pkg)
+            index += 1
+    
+    index = 1 # reset index
+    # upload vehicles from file
+    with open(vehicles_file, 'r') as file:
+        for line in file:
+            # create object with vehicle data
+            vehicle_obj = Vehicle(index, int(line))
+            vehicles.append(vehicle_obj) # add to list of vehicles
+            index += 1
 
+## Function to print the uploaded data
+def print_data(vehicles, packets):
+    print("Vehicles:\n")
+    for v in vehicles:
+        print(f"id: {v.id}, capacity: {v.capacity}\n")
+    
+    print("\nPackages:\n")
+    for p in packages:
+        print(f"id: {p.id}, priority: {p.priority}, weight: {p.weight}, (x,y): ({p.x},{p.y})\n") 
+
+## Function to run genetic algorithm
+def genetic_algorithm():
+    upload_data()
+    print_data(vehicles, packages)
+
+## Main Function to run the program
 if __name__ == "__main__":
-    main()
+    display_menu()
