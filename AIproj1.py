@@ -23,10 +23,16 @@ class Vehicle:
         self.packages = []
 
 ## Global Declarations
+ # lists
 packages =[]
 vehicles =[]
+ # file names
 packages_file = "C:\\Users\\HP\\Documents\\GitHub\\Artificial_Intelligence\\packages.txt"
 vehicles_file = "C:\\Users\\HP\\Documents\\GitHub\\Artificial_Intelligence\\vehicles.txt"
+ # genetic algorithm parameters
+population_size = 75
+mutation_rate = 0.05
+generations_count = 500
 
 def calculate_distance(x1, y1, x2, y2):
     return math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
@@ -243,7 +249,7 @@ def upload_data():
             index += 1
 
 ## Function to print the uploaded data
-def print_data(vehicles, packets):
+def print_data(vehicles, packages):
     print("Vehicles:\n")
     for v in vehicles:
         print(f"id: {v.id}, capacity: {v.capacity}\n")
@@ -252,11 +258,38 @@ def print_data(vehicles, packets):
     for p in packages:
         print(f"id: {p.id}, priority: {p.priority}, weight: {p.weight}, (x,y): ({p.x},{p.y})\n") 
 
+## Function to generate individual
+def generate_individual():
+    print()
+
+## Fitness Function
+def evaluate_individual():
+    print()
+
+## Function to generate population
+def generate_population():
+    # generate number of individuals to represent population
+    return [generate_individual() for i in range(population_size)]
+
+## Function to evaluate population
+def evaluate_population(population):
+    evaluated_population = []
+    
+    # evaluate each individual in the population
+    for individual in population:
+        evaluation = evaluate_individual(individual)
+        evaluated_population.append((individual, evaluation))
+
+    return evaluated_population
+
 ## Function to run genetic algorithm
 def genetic_algorithm():
     upload_data()
     print_data(vehicles, packages)
 
 ## Main Function to run the program
-if __name__ == "__main__":
+def main():
     display_menu()
+
+if __name__ == "__main__":
+    main()
