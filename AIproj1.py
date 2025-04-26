@@ -259,10 +259,13 @@ def print_data(vehicles, packages):
     for p in packages:
         print(f"id: {p.id}, priority: {p.priority}, weight: {p.weight}, (x,y): ({p.x},{p.y})\n") 
 
-## Function to generate individuals of potential solutions
-def generate_individual(packages, vehicels):
+## Function to generate individuals of possible solutions
+def generate_individual(packages, vehicles):
     # represent individual as vehicle with ordered list (priority) of packages to deliver
-    print()
+    individual = {v.id: [] for v in vehicles} # no packages assigned yet
+    
+    
+    return individual
 
 ## Fitness Function
 def evaluate_individual():
@@ -369,7 +372,7 @@ def genetic_algorithm():
         # reevaluate best solution
         population = evaluate_population(population)
         best_solution = report(population, best_solution, generation)
-        
+
         history.append(best_solution)
 
 ## Main Function to run the program
