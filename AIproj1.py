@@ -33,6 +33,7 @@ vehicles_file = "C:\\Users\\HP\\Documents\\GitHub\\Artificial_Intelligence\\vehi
 POPULATION_SIZE = 75
 MUTATION_RATE = 0.05
 GENERATIONS_COUNT = 500
+TOURNAMENT_RATIO = 0.15
 
 def calculate_distance(x1, y1, x2, y2):
     return math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
@@ -276,7 +277,6 @@ def generate_population(packages, vehicels):
 ## Function to evaluate population
 def evaluate_population(population):
     evaluated_population = []
-    
     # evaluate each individual in the population
     for individual in population:
         evaluation = evaluate_individual(individual)
@@ -284,12 +284,93 @@ def evaluate_population(population):
 
     return evaluated_population
 
+## Function to instantiate a tournament among individuals in generation
+def instantiate_tournament(generation):
+    # take a subset from generation for tournament
+    tournament_size = round(len(generation) * TOURNAMENT_RATIO)
+    tournament = random.sample(generation, tournament_size)
+    ############################################################# revise key for sort ##################33
+    tournament.sort(key=lambda pair: pair[1])
+
+    return tournament[0] # return winner of the tournament
+
+## Function to select generation
+def select_generation(generation):
+    selected = []
+    while len(selected) < len(generation):
+        # append winner of the tournament to list of selected individuals in generation
+        selected.append(instantiate_tournament(generation, TOURNAMENT_RATIO))
+
+    return selected
+
+## Function to simulate crossover operator
+def crossover_generation(population):
+    print()
+
+## Function to simulate mutations
+def mutate_generation(generation):
+    new_generation = []
+
+    for individual in generation:
+        # all individuals have chance in mutation
+        individual = mutate(individual, MUTATION_RATE)
+        new_generation.append(individual)
+
+    return new_generation
+
+## Function to perform mutation on individual
+def mutate(individual):
+    # change order of packages in a vehicle
+
+    # EXAMPLE
+    # for index in range(len(individual)):
+    #     if random.random() < chance:
+    #         individual[index] = random.uniform(*parameter_bounds)
+
+    return individual
+
+## Function to report current best solution
+def report(population, best_individual, generation):
+    evaluation = [item[1] for item in population]
+    population.sort(key=lambda pair: pair[1])
+    current_best = population[0]
+
+    if current_best[1] < best_individual[1]:
+        # better total cost found
+        best_individual = current_best
+    
+    print('[', generation, ']\t',
+          sum(evaluation) / len(evaluation), 
+          '\tbest:', current_best[1])
+
+    return best_individual
+
 ## Function to run genetic algorithm
 def genetic_algorithm():
     upload_data()
     print_data(vehicles, packages)
 
-    initial_population = generate_population(packages, vehicles)
+    history = [] # preserve history of best solutions
+    # create initial population
+    population = generate_population()
+    population = evaluate_population(population)
+    # initial best solution
+    best_solution = report(population, (_, float('inf')), 0)
+    history.append(best_solution)
+
+    for generation in range(1, GENERATIONS_COUNT):
+        # select operator
+        population = select_generation(population)
+        # crossover operator
+        population = crossover_generation(population)
+        # mutate operator
+        population = mutate_generation(population)
+
+        # reevaluate best solution
+        population = evaluate_population(population)
+        best_solution = report(population, best_solution, generation)
+        
+        history.append(best_solution)
 
 ## Main Function to run the program
 def main():
