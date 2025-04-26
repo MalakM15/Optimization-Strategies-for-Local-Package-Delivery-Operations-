@@ -30,9 +30,9 @@ vehicles =[]
 packages_file = "C:\\Users\\HP\\Documents\\GitHub\\Artificial_Intelligence\\packages.txt"
 vehicles_file = "C:\\Users\\HP\\Documents\\GitHub\\Artificial_Intelligence\\vehicles.txt"
  # genetic algorithm parameters
-population_size = 75
-mutation_rate = 0.05
-generations_count = 500
+POPULATION_SIZE = 75
+MUTATION_RATE = 0.05
+GENERATIONS_COUNT = 500
 
 def calculate_distance(x1, y1, x2, y2):
     return math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
@@ -258,18 +258,20 @@ def print_data(vehicles, packages):
     for p in packages:
         print(f"id: {p.id}, priority: {p.priority}, weight: {p.weight}, (x,y): ({p.x},{p.y})\n") 
 
-## Function to generate individual
-def generate_individual():
+## Function to generate individuals of potential solutions
+def generate_individual(packages, vehicels):
+    # represent individual as vehicle with ordered list (priority) of packages to deliver
     print()
 
 ## Fitness Function
 def evaluate_individual():
+    # evaluate based on total distance travelled by all vehicles
     print()
 
 ## Function to generate population
-def generate_population():
-    # generate number of individuals to represent population
-    return [generate_individual() for i in range(population_size)]
+def generate_population(packages, vehicels):
+    # generate number of individuals to form the population
+    return [generate_individual(packages, vehicels) for i in range(POPULATION_SIZE)]
 
 ## Function to evaluate population
 def evaluate_population(population):
@@ -286,6 +288,8 @@ def evaluate_population(population):
 def genetic_algorithm():
     upload_data()
     print_data(vehicles, packages)
+
+    initial_population = generate_population(packages, vehicles)
 
 ## Main Function to run the program
 def main():
