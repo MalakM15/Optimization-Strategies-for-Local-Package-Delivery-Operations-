@@ -1,7 +1,11 @@
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+## Title: Optimization Strategies for Local Package Delivery Operations
+    # Algorithms used: Simulated Annealing, Genetic
 
-#Maysam Habbash 122007
-#Malak Milhem 1220031
+## Authors:
+    # Maysam Habbash 122007
+    # Malak Milhem 1220031
+
+## Section: 3
 
 import re
 import random
@@ -37,6 +41,7 @@ MUTATION_RATE = 0.05
 GENERATIONS_COUNT = 500
 TOURNAMENT_RATIO = 0.15
 
+# Function to calculate distance between two locations (Euclidean distance formula)
 def calculate_distance(x1, y1, x2, y2):
     return math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
 
@@ -72,50 +77,41 @@ def take_vehicle_data():
 
 
 def generate_random_initial_state(packages, vehicles):
-        while True:
-            solution = {v.id: [] for v in vehicles}
-            vehicle_capacities = {v.id: float(v.capacity) for v in vehicles}
-
-            unassigned = packages.copy()
-            random.shuffle(unassigned)
-
-            all_assigned = True
-
-            for package in unassigned:
-                assigned = False
-                random.shuffle(vehicles)
-                for v in vehicles:
-                    if float(package.weight) <= vehicle_capacities[v.id]:
-                        solution[v.id].append(package)
-                        vehicle_capacities[v.id] -= float(package.weight)
-                        assigned = True
-                        break
-                if not assigned:
-                    all_assigned = False
+    while True:
+        solution = {v.id: [] for v in vehicles}
+        vehicle_capacities = {v.id: float(v.capacity) for v in vehicles}
+        unassigned = packages.copy()
+        random.shuffle(unassigned)
+        all_assigned = True
+        for package in unassigned:
+            assigned = False
+            random.shuffle(vehicles)
+            for v in vehicles:
+                if float(package.weight) <= vehicle_capacities[v.id]:
+                    solution[v.id].append(package)
+                    vehicle_capacities[v.id] -= float(package.weight)
+                    assigned = True
                     break
-
-            if all_assigned:
-                return solution
+            if not assigned:
+                all_assigned = False
+                break
+        if all_assigned:
+            return solution
+            
 def total_distance(solution):
-        total_distance = 0.0
-
-        for vehicle_id, packages in solution.items():
-            if not packages:
-                continue
-
-            x_prev, y_prev = 0, 0  # Start from the shop
-
-            for package in packages:
-                x_curr, y_curr = float(package.x), float(package.y)
-                dist = calculate_distance(x_prev, y_prev, x_curr, y_curr)
-                total_distance += dist
-                x_prev, y_prev = x_curr, y_curr
-            # return to shop
-            total_distance += calculate_distance(x_prev, y_prev, 0, 0)
-
-        return total_distance
-
-
+    total_distance = 0.0
+    for vehicle_id, packages in solution.items():
+        if not packages:
+            continue
+        x_prev, y_prev = 0, 0  # Start from the shop
+        for package in packages:
+            x_curr, y_curr = float(package.x), float(package.y)
+            dist = calculate_distance(x_prev, y_prev, x_curr, y_curr)
+            total_distance += dist
+            x_prev, y_prev = x_curr, y_curr
+        # return to shop
+        total_distance += calculate_distance(x_prev, y_prev, 0, 0)
+    return total_distance
 
 def generate_newsolution(solution, vehicles):
     new_solution = copy.deepcopy(solution)
@@ -169,6 +165,7 @@ def validate_solution(solution, vehicles):
 
     return True
 
+## Function to run Simulated Annealing algorithm
 def simulated_annealing(initial_solution, vehicles):
 #### algorithm parameters
     initial_temp = 1000
@@ -328,10 +325,12 @@ def print_individual(individual):
             print(f"  vehicle {vehicle_id} :")
 
 def print_population(population):
-    print(f"-- INITIAL POPULATION --\n")
-    for i in range(POPULATION_SIZE):
-        print(f"Individual #{i}:")
-        print_individual(population[i])
+    print(f"-- INITIAL POPULATION --")
+    for i in range(len(population)):
+        individual, cost = population[i]
+        print(f"\nIndividual #{i}:")
+        print_individual(individual)
+        print(f"  Total Cost: {cost:.2f}\n")
 
 ## Function to generate population
 def generate_population(packages, vehicles):
@@ -345,10 +344,28 @@ def generate_population(packages, vehicles):
 
     return population
 
-## Fitness Function
-def evaluate_individual():
-    # evaluate based on total distance travelled by all vehicles
-    print()
+## Fitness Function (evaluate based on total distance travelled by all vehicles)
+def evaluate_individual(individual):
+    total_distance = 0 # distance travelled by all vehicles
+    
+    for vehicle_id, pkg_list in individual.items():
+        # make sure vehicle has packages to deliver
+        if not pkg_list:
+            continue
+
+        curr_x = 0
+        curr_y = 0
+        distance = 0 # distance travelled by vehicle
+
+        for p in pkg_list:
+            distance += calculate_distance(curr_x, curr_y, p.x, p.y)
+            curr_x = p.x
+            curr_y = p.y
+        
+        distance += calculate_distance(curr_x, curr_y, 0, 0) # return to origin
+        total_distance += distance
+
+    return total_distance
 
 ## Function to evaluate population
 def evaluate_population(population):
@@ -423,7 +440,7 @@ def report(population, best_individual, generation):
 ## Function to run genetic algorithm
 def genetic_algorithm(packages, vehicles):
     upload_data()
-    print_data(packages, vehicles)
+    # print_data(packages, vehicles)
 
     if not validate_input(packages, vehicles):
         return None
@@ -431,9 +448,9 @@ def genetic_algorithm(packages, vehicles):
     history = [] # preserve history of best solutions
     # generate initial population
     population = generate_population(packages, vehicles)
+    population = evaluate_population(population)
     print_population(population)
-    # population = evaluate_population(population)
-    # # record initial best solution
+    # record initial best solution
     # best_solution = report(population, (_, float('inf')), 0)
     # history.append(best_solution)
 
@@ -454,6 +471,7 @@ def genetic_algorithm(packages, vehicles):
 
 ## Main Function to run the program
 def main():
+    random.seed(5)
     display_menu()
 
 if __name__ == "__main__":
