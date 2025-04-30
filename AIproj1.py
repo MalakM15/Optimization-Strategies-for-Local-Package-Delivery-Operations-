@@ -251,6 +251,23 @@ def upload_data():
             vehicles.append(vehicle_obj) # add to list of vehicles
             index += 1
 
+## Function to validate packages fit in vehicles
+def validate_input(packages, vehicles):
+    total_packages = sum(p.weight for p in packages)
+    total_vehicles = sum(v.capacity for v in vehicles)
+    
+    if total_packages > total_vehicles:
+        print("Packages exceed vehicles capacities!\n")
+        return False
+    
+    # make sure no package is larger than all vehicles' capacities
+    for p in packages:
+        if all(p.weight > v.capacity for v in vehicles):
+            print("Packages exceed vehicles capacities!\n")
+            return False
+    
+    return True
+
 ## Function to print the uploaded data
 def print_data(packages, vehicles):
     print("Vehicles:\n")
@@ -408,6 +425,9 @@ def genetic_algorithm(packages, vehicles):
     upload_data()
     print_data(packages, vehicles)
 
+    if not validate_input(packages, vehicles):
+        return None
+    
     history = [] # preserve history of best solutions
     # generate initial population
     population = generate_population(packages, vehicles)
