@@ -8,6 +8,7 @@ import random
 import math
 import copy
 from pprint import pprint
+import sys
 class Package:
     def __init__(self, id, x, y, weight, priority):
         self.id = id
@@ -20,6 +21,7 @@ class Vehicle:
     def __init__(self, id, capacity):
         self.id = id
         self.capacity = capacity
+        self.load = 0
         self.packages = []
 
 ## Global Declarations
@@ -30,7 +32,7 @@ vehicles =[]
 packages_file = "C:\\Users\\HP\\Documents\\GitHub\\Artificial_Intelligence\\packages.txt"
 vehicles_file = "C:\\Users\\HP\\Documents\\GitHub\\Artificial_Intelligence\\vehicles.txt"
  # genetic algorithm parameters
-POPULATION_SIZE = 75
+POPULATION_SIZE = 10 #75
 MUTATION_RATE = 0.05
 GENERATIONS_COUNT = 500
 TOURNAMENT_RATIO = 0.15
@@ -224,7 +226,7 @@ def display_menu():
         print(f"\nOptimized total distance: {best_cost:.2f} km")
 
     elif(choise==2):
-        genetic_algorithm()
+        genetic_algorithm(packages, vehicles)
     else:
         print("Invalid algorithm!\n")
 
@@ -250,7 +252,7 @@ def upload_data():
             index += 1
 
 ## Function to print the uploaded data
-def print_data(vehicles, packages):
+def print_data(packages, vehicles):
     print("Vehicles:\n")
     for v in vehicles:
         print(f"id: {v.id}, capacity: {v.capacity}\n")
@@ -259,23 +261,77 @@ def print_data(vehicles, packages):
     for p in packages:
         print(f"id: {p.id}, priority: {p.priority}, weight: {p.weight}, (x,y): ({p.x},{p.y})\n") 
 
+## Function to reset load of vehicles to zero
+def reset_vehicles_load(vehicles):
+    # empty_vehicles = []
+    for v in vehicles:
+        v.load = 0
+        # empty_vehicles.append(v)
+
+    return vehicles
+
 ## Function to generate individuals of possible solutions
 def generate_individual(packages, vehicles):
     # represent individual as vehicle with ordered list (priority) of packages to deliver
     individual = {v.id: [] for v in vehicles} # no packages assigned yet
     
+    updated_packages = copy.deepcopy(packages)
+    random.shuffle(updated_packages) # randomize package assignment between individuals
+    updated_vehicles = copy.deepcopy(vehicles)
+    empty_vehicles = reset_vehicles_load(updated_vehicles) # reset vehicles' load for each individual
+
+    for p in updated_packages:
+        random.shuffle(empty_vehicles)
+        assigned = False
+        for v in empty_vehicles:
+            if (v.load + p.weight <= v.capacity):
+                # assign package to vehicle
+                individual[v.id].append(p)
+                v.load += p.weight # update vehicle's weight
+                assigned = True
+                break
+        if not assigned:
+            # invalid distribution of packages
+            return None
+    
+    # prioritize packages to deliver
+    for v_id in individual:
+        individual[v_id].sort(key=lambda pkg: pkg.priority)
     
     return individual
+
+## Function to print individual details
+def print_individual(individual):
+    for vehicle_id, package_list in individual.items():
+        if package_list:
+            package_ids = [f"pkg {p.id}" for p in package_list]
+            package_str = ", ".join(package_ids)
+            print(f"  vehicle {vehicle_id} : {package_str}")
+        else:
+            print(f"  vehicle {vehicle_id} :")
+
+def print_population(population):
+    print(f"-- INITIAL POPULATION --\n")
+    for i in range(POPULATION_SIZE):
+        print(f"Individual #{i}:")
+        print_individual(population[i])
+
+## Function to generate population
+def generate_population(packages, vehicles):
+    population = []
+    # generate number of individuals to form the population
+    while len(population) < POPULATION_SIZE:
+        # try to generate a valid individual
+        individual = generate_individual(packages, vehicles)
+        if individual:
+            population.append(individual)
+
+    return population
 
 ## Fitness Function
 def evaluate_individual():
     # evaluate based on total distance travelled by all vehicles
     print()
-
-## Function to generate population
-def generate_population(packages, vehicels):
-    # generate number of individuals to form the population
-    return [generate_individual(packages, vehicels) for i in range(POPULATION_SIZE)]
 
 ## Function to evaluate population
 def evaluate_population(population):
@@ -302,7 +358,7 @@ def select_generation(generation):
     selected = []
     while len(selected) < len(generation):
         # append winner of the tournament to list of selected individuals in generation
-        selected.append(instantiate_tournament(generation, TOURNAMENT_RATIO))
+        selected.append(instantiate_tournament(generation))
 
     return selected
 
@@ -313,7 +369,6 @@ def crossover_generation(population):
 ## Function to simulate mutations
 def mutate_generation(generation):
     new_generation = []
-
     for individual in generation:
         # all individuals have chance in mutation
         individual = mutate(individual, MUTATION_RATE)
@@ -349,31 +404,33 @@ def report(population, best_individual, generation):
     return best_individual
 
 ## Function to run genetic algorithm
-def genetic_algorithm():
+def genetic_algorithm(packages, vehicles):
     upload_data()
-    print_data(vehicles, packages)
+    print_data(packages, vehicles)
 
     history = [] # preserve history of best solutions
-    # create initial population
-    population = generate_population()
-    population = evaluate_population(population)
-    # initial best solution
-    best_solution = report(population, (_, float('inf')), 0)
-    history.append(best_solution)
+    # generate initial population
+    population = generate_population(packages, vehicles)
+    print_population(population)
+    # population = evaluate_population(population)
+    # # record initial best solution
+    # best_solution = report(population, (_, float('inf')), 0)
+    # history.append(best_solution)
 
-    for generation in range(1, GENERATIONS_COUNT):
-        # select operator
-        population = select_generation(population)
-        # crossover operator
-        population = crossover_generation(population)
-        # mutate operator
-        population = mutate_generation(population)
+    # # create as many required generations to get the best solution
+    # for generation in range(1, GENERATIONS_COUNT):
+    #     # select operator
+    #     population = select_generation(population)
+    #     # crossover operator
+    #     population = crossover_generation(population)
+    #     # mutate operator
+    #     population = mutate_generation(population)
 
-        # reevaluate best solution
-        population = evaluate_population(population)
-        best_solution = report(population, best_solution, generation)
+    #     # reevaluate population and record better solution
+    #     population = evaluate_population(population)
+    #     best_solution = report(population, best_solution, generation)
 
-        history.append(best_solution)
+    #     history.append(best_solution)
 
 ## Main Function to run the program
 def main():
