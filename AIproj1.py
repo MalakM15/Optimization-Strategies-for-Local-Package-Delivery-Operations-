@@ -422,18 +422,13 @@ def mutate(individual):
     return individual
 
 ## Function to report current best solution
-def report(population, best_individual, generation):
-    evaluation = [item[1] for item in population]
+def report(population, best_individual):
     population.sort(key=lambda pair: pair[1])
-    current_best = population[0]
+    current_best = population[0] # best solution in current population
 
     if current_best[1] < best_individual[1]:
         # better total cost found
         best_individual = current_best
-    
-    print('[', generation, ']\t',
-          sum(evaluation) / len(evaluation), 
-          '\tbest:', current_best[1])
 
     return best_individual
 
@@ -451,10 +446,10 @@ def genetic_algorithm(packages, vehicles):
     population = evaluate_population(population)
     print_population(population)
     # record initial best solution
-    # best_solution = report(population, (_, float('inf')), 0)
-    # history.append(best_solution)
+    best_solution = report(population, population[0])
+    history.append(best_solution)
 
-    # # create as many required generations to get the best solution
+    # create as many required generations to get the best solution
     # for generation in range(1, GENERATIONS_COUNT):
     #     # select operator
     #     population = select_generation(population)
@@ -465,9 +460,9 @@ def genetic_algorithm(packages, vehicles):
 
     #     # reevaluate population and record better solution
     #     population = evaluate_population(population)
-    #     best_solution = report(population, best_solution, generation)
+    #     best_solution = report(population, best_solution)
 
-    #     history.append(best_solution)
+    #     history.append(best_solution) # record
 
 ## Main Function to run the program
 def main():
