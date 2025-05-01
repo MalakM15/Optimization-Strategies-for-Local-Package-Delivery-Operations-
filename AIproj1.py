@@ -38,8 +38,8 @@ vehicles_file = "C:\\Users\\HP\\Documents\\GitHub\\Artificial_Intelligence\\vehi
  # genetic algorithm parameters
 POPULATION_SIZE = 10 #75
 MUTATION_RATE = 0.05
-GENERATIONS_COUNT = 500
-TOURNAMENT_RATIO = 0.15
+GENERATIONS_COUNT = 10 #500
+TOURNAMENT_RATIO = 0.2
 
 # Function to calculate distance between two locations (Euclidean distance formula)
 def calculate_distance(x1, y1, x2, y2):
@@ -382,8 +382,7 @@ def instantiate_tournament(generation):
     # take a subset from generation for tournament
     tournament_size = round(len(generation) * TOURNAMENT_RATIO)
     tournament = random.sample(generation, tournament_size)
-    ############################################################# revise key for sort ##################33
-    tournament.sort(key=lambda pair: pair[1])
+    tournament.sort(key=lambda pair: pair[1]) # sort individuals based on evaluation
 
     return tournament[0] # return winner of the tournament
 
@@ -398,7 +397,78 @@ def select_generation(generation):
 
 ## Function to simulate crossover operator
 def crossover_generation(population):
-    print()
+    individuals = [item[0] for item in population] # operate on individuals
+    new_population = []
+
+    while len(new_population) < len(individuals):
+        # select two random parents to generate child
+        parent1, parent2 = random.sample(individuals, 2)
+        # generate child form parents' crossover
+        child = generate_child(parent1, parent2)
+
+        if child:
+            new_population.append(child)
+
+    return new_population
+
+## Function to generate child using crossover logic
+def generate_child(parent1, parent2, packages, vehicles):
+    child = {v.id: [] for v in vehicles} # empty child individual
+    assigned_packages = set() # track package assignment
+    split_amount = len(vehicles) // 2
+
+    # randomize choose of vechiles from parents
+    vehicle_ids = [v.id for v in vehicles]
+    random.shuffle(vehicle_ids)
+
+    parent1_vehicles = set(vehicle_ids[:split_amount])
+    parent2_vehicles = set(vehicle_ids[split_amount:])
+
+    # copy 1st parent's vehicles' routes
+    for v_id in parent1_vehicles:
+        packages_route = copy.deepcopy(parent1[v_id])
+        child[v_id] = packages_route # update child's package route
+        assigned_packages.update(p.id for p in packages_route)
+
+    # copy 2nd parent's vehicles' routes
+    for v_id in parent2_vehicles:
+        new_packages_route = []
+        for pkg in parent2[v_id]:
+            # make sure same package is not assigned twice
+            if pkg.id not in assigned_packages:
+                new_packages_route.append(pkg)
+                assigned_packages.add(pkg.id)
+
+        child[v_id] = new_packages_route # update child's package route
+
+    if not validate_child(child, packages, assigned_packages):
+        return None # child could not be generated
+    
+    for v_id in child:
+        child[v_id].sort(key=lambda p: p.priority)
+
+    return child
+
+## Function to validate the generated child
+def validate_child(child, packages, assigned_packages):
+    missing_packages = []
+
+    for pkg in packages:
+        if pkg.id not in assigned_packages:
+            missing_packages.append(pkg)
+    if missing_packages:
+        # assign all missing packages if possible
+        for pkg in missing_packages:
+            for v in vehicles:
+                v_id = v.id
+                current_weight = sum(p.weight for p in child[v_id])
+                if current_weight + pkg.weight <= v.capacity:
+                    child[v_id].append(pkg)
+                    assigned_packages.add(pkg.id)
+                    break
+        else:
+            return None # package couldn't be assigned (invalid child)
+    return child
 
 ## Function to simulate mutations
 def mutate_generation(generation):
@@ -444,25 +514,25 @@ def genetic_algorithm(packages, vehicles):
     # generate initial population
     population = generate_population(packages, vehicles)
     population = evaluate_population(population)
-    print_population(population)
+    # print_population(population)
     # record initial best solution
     best_solution = report(population, population[0])
     history.append(best_solution)
 
     # create as many required generations to get the best solution
-    # for generation in range(1, GENERATIONS_COUNT):
-    #     # select operator
-    #     population = select_generation(population)
-    #     # crossover operator
-    #     population = crossover_generation(population)
-    #     # mutate operator
-    #     population = mutate_generation(population)
+    for generation in range(1, GENERATIONS_COUNT):
+        # select operator
+        population = select_generation(population)
+        # crossover operator
+        population = crossover_generation(population)
+        # mutate operator
+        # population = mutate_generation(population)
 
-    #     # reevaluate population and record better solution
-    #     population = evaluate_population(population)
-    #     best_solution = report(population, best_solution)
+        # reevaluate population and record better solution
+        # population = evaluate_population(population)
+        # best_solution = report(population, best_solution)
 
-    #     history.append(best_solution) # record
+        # history.append(best_solution) # record
 
 ## Main Function to run the program
 def main():
