@@ -1,5 +1,5 @@
 ## Title: Optimization Strategies for Local Package Delivery Operations
-    # Algorithms used: Simulated Annealing, Genetic
+    # Algorithms used: Simulated Annealing algorithm, Genetic algorithm
 
 ## Authors:
     # Maysam Habbash 122007
@@ -13,6 +13,8 @@ import math
 import copy
 from pprint import pprint
 import sys
+
+## Class to encapsulate Package information
 class Package:
     def __init__(self, id, x, y, weight, priority):
         self.id = id
@@ -21,6 +23,8 @@ class Package:
         self.weight = weight
         self.priority = priority
 
+
+## Class to encapsulate Vehicle information
 class Vehicle:
     def __init__(self, id, capacity):
         self.id = id
@@ -36,9 +40,9 @@ vehicles =[]
 packages_file = "C:\\Users\\HP\\Documents\\GitHub\\Artificial_Intelligence\\packages.txt"
 vehicles_file = "C:\\Users\\HP\\Documents\\GitHub\\Artificial_Intelligence\\vehicles.txt"
  # genetic algorithm parameters
-POPULATION_SIZE = 10 #75
+POPULATION_SIZE = 75 #75
 MUTATION_RATE = 0.05
-GENERATIONS_COUNT = 10 #500
+GENERATIONS_COUNT = 500 #500
 TOURNAMENT_RATIO = 0.2
 
 # Function to calculate distance between two locations (Euclidean distance formula)
@@ -325,7 +329,6 @@ def print_individual(individual):
             print(f"  vehicle {vehicle_id} :")
 
 def print_population(population):
-    print(f"-- INITIAL POPULATION --")
     for i in range(len(population)):
         individual, cost = population[i]
         print(f"\nIndividual #{i}:")
@@ -344,9 +347,15 @@ def generate_population(packages, vehicles):
 
     return population
 
+## Function to check any priority violations
+def check_priority(pkg_list):
+    return all(pkg_list[i].priority <= pkg_list[i + 1].priority for i in range(len(pkg_list) - 1))
+
 ## Fitness Function (evaluate based on total distance travelled by all vehicles)
 def evaluate_individual(individual):
     total_distance = 0 # distance travelled by all vehicles
+    priority_violations = 0
+    penalty = 5
     
     for vehicle_id, pkg_list in individual.items():
         # make sure vehicle has packages to deliver
@@ -365,6 +374,10 @@ def evaluate_individual(individual):
         distance += calculate_distance(curr_x, curr_y, 0, 0) # return to origin
         total_distance += distance
 
+        if not check_priority(pkg_list):
+            priority_violations += penalty
+    
+    total_distance += priority_violations
     return total_distance
 
 ## Function to evaluate population
@@ -400,11 +413,11 @@ def crossover_generation(population):
     individuals = [item[0] for item in population] # operate on individuals
     new_population = []
 
-    while len(new_population) < len(individuals):
+    while len(new_population) < POPULATION_SIZE:
         # select two random parents to generate child
         parent1, parent2 = random.sample(individuals, 2)
         # generate child form parents' crossover
-        child = generate_child(parent1, parent2)
+        child = generate_child(parent1, parent2, packages, vehicles)
 
         if child:
             new_population.append(child)
@@ -417,20 +430,20 @@ def generate_child(parent1, parent2, packages, vehicles):
     assigned_packages = set() # track package assignment
     split_amount = len(vehicles) // 2
 
-    # randomize choose of vechiles from parents
+    # randomize choose of vehicles from parents
     vehicle_ids = [v.id for v in vehicles]
     random.shuffle(vehicle_ids)
 
     parent1_vehicles = set(vehicle_ids[:split_amount])
     parent2_vehicles = set(vehicle_ids[split_amount:])
 
-    # copy 1st parent's vehicles' routes
+    # copy half of vehicle routes from parent1
     for v_id in parent1_vehicles:
         packages_route = copy.deepcopy(parent1[v_id])
         child[v_id] = packages_route # update child's package route
         assigned_packages.update(p.id for p in packages_route)
 
-    # copy 2nd parent's vehicles' routes
+    # copy the other half of vehicle routes from parent2
     for v_id in parent2_vehicles:
         new_packages_route = []
         for pkg in parent2[v_id]:
@@ -445,6 +458,7 @@ def generate_child(parent1, parent2, packages, vehicles):
         return None # child could not be generated
     
     for v_id in child:
+        # consider priority for delivery evaluation
         child[v_id].sort(key=lambda p: p.priority)
 
     return child
@@ -454,42 +468,44 @@ def validate_child(child, packages, assigned_packages):
     missing_packages = []
 
     for pkg in packages:
+        # identify missing packages
         if pkg.id not in assigned_packages:
             missing_packages.append(pkg)
+
     if missing_packages:
         # assign all missing packages if possible
         for pkg in missing_packages:
             for v in vehicles:
                 v_id = v.id
-                current_weight = sum(p.weight for p in child[v_id])
-                if current_weight + pkg.weight <= v.capacity:
+                load = sum(p.weight for p in child[v_id])
+                if load + pkg.weight <= v.capacity:
                     child[v_id].append(pkg)
                     assigned_packages.add(pkg.id)
                     break
-        else:
-            return None # package couldn't be assigned (invalid child)
+            else:
+                return None # package couldn't be assigned (invalid child)
+        
     return child
 
-## Function to simulate mutations
+## Function to simulate mutations on a generation
 def mutate_generation(generation):
     new_generation = []
     for individual in generation:
         # all individuals have chance in mutation
-        individual = mutate(individual, MUTATION_RATE)
+        individual = mutate(individual)
         new_generation.append(individual)
 
     return new_generation
 
 ## Function to perform mutation on individual
 def mutate(individual):
-    # change order of packages in a vehicle
+    mutated = copy.deepcopy(individual)
+    for v_id in mutated:
+        if random.random() < MUTATION_RATE:
+            # change order of packages in a vehicle (violate priority)
+            random.shuffle(mutated[v_id])
 
-    # EXAMPLE
-    # for index in range(len(individual)):
-    #     if random.random() < chance:
-    #         individual[index] = random.uniform(*parameter_bounds)
-
-    return individual
+    return mutated
 
 ## Function to report current best solution
 def report(population, best_individual):
@@ -514,7 +530,10 @@ def genetic_algorithm(packages, vehicles):
     # generate initial population
     population = generate_population(packages, vehicles)
     population = evaluate_population(population)
+
+    # print(f"-- INITIAL POPULATION --")
     # print_population(population)
+
     # record initial best solution
     best_solution = report(population, population[0])
     history.append(best_solution)
@@ -523,16 +542,22 @@ def genetic_algorithm(packages, vehicles):
     for generation in range(1, GENERATIONS_COUNT):
         # select operator
         population = select_generation(population)
+
         # crossover operator
         population = crossover_generation(population)
+
         # mutate operator
-        # population = mutate_generation(population)
+        population = mutate_generation(population)
 
         # reevaluate population and record better solution
-        # population = evaluate_population(population)
-        # best_solution = report(population, best_solution)
+        population = evaluate_population(population)
+        best_solution = report(population, best_solution)
 
-        # history.append(best_solution) # record
+        history.append(best_solution) # record
+
+    print("\n-- BEST SOLUTION --")
+    print_individual(best_solution[0])
+    print(f"Cost: {best_solution[1]:.2f}")
 
 ## Main Function to run the program
 def main():
