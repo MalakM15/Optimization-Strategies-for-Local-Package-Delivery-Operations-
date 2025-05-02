@@ -12,6 +12,9 @@ import random
 import math
 import copy
 from pprint import pprint
+import tkinter as tk
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import matplotlib.pyplot as plt
 import sys
 
 ## Class to encapsulate Package information
@@ -37,8 +40,11 @@ class Vehicle:
 packages =[]
 vehicles =[]
  # file names
-packages_file = "C:\\Users\\HP\\Documents\\GitHub\\Artificial_Intelligence\\packages.txt"
-vehicles_file = "C:\\Users\\HP\\Documents\\GitHub\\Artificial_Intelligence\\vehicles.txt"
+#packages_file = "C:\\Users\\HP\\Documents\\GitHub\\Artificial_Intelligence\\packages.txt"
+#vehicles_file = "C:\\Users\\HP\\Documents\\GitHub\\Artificial_Intelligence\\vehicles.txt"
+packages_file = "C:\\Users\\user\\Documents\\GitHub\\Optimization-Strategies-for-Local-Package-Delivery-Operations-\\packages.txt"
+vehicles_file = "C:\\Users\\user\\Documents\\GitHub\\Optimization-Strategies-for-Local-Package-Delivery-Operations-\\vehicles.txt"
+
  # genetic algorithm parameters
 POPULATION_SIZE = 75 #75
 MUTATION_RATE = 0.05
@@ -225,6 +231,8 @@ def display_menu():
         for vid, packs in best_solution.items():
             print(f"Vehicle {vid}: {[p.id for p in packs]}")
         print(f"\nOptimized total distance: {best_cost:.2f} km")
+        plot_solution(best_solution) 
+
 
     elif(choise==2):
         genetic_algorithm(packages, vehicles)
@@ -558,6 +566,44 @@ def genetic_algorithm(packages, vehicles):
     print("\n-- BEST SOLUTION --")
     print_individual(best_solution[0])
     print(f"Cost: {best_solution[1]:.2f}")
+    plot_solution(best_solution[0]) 
+
+
+def plot_solution(solution):
+
+    
+    window = tk.Tk()
+    window.title("Optimized Delivery Routes")
+
+    fig, ax = plt.subplots(figsize=(6, 5))
+
+    colors = ['red', 'blue', 'green', 'orange', 'purple', 'brown', 'cyan']
+
+    for i, (vehicle_id, route) in enumerate(solution.items()):
+        if not route:
+            continue
+        xs = [0] + [p.x for p in route] + [0]  # start and return to (0,0)
+        ys = [0] + [p.y for p in route] + [0]
+        ax.plot(xs, ys, marker='o', label=f'Vehicle {vehicle_id}', color=colors[i % len(colors)])
+
+        # Optional: Label packages
+        for p in route:
+            ax.annotate(str(p.id), (p.x, p.y), textcoords="offset points", xytext=(0, 5), ha='center', fontsize=8)
+
+    ax.set_title("Optimized Delivery Routes")
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.legend()
+    ax.grid(True)
+
+    canvas = FigureCanvasTkAgg(fig, master=window)
+    canvas.draw()
+    canvas.get_tk_widget().pack()
+
+    window.mainloop()
+    window.destroy()
+        
+    sys.exit()
 
 ## Main Function to run the program
 def main():
