@@ -572,8 +572,8 @@ def genetic_algorithm(packages, vehicles):
 def plot_solution(solution):
 
     
-    window = tk.Tk()
-    window.title("Optimized Delivery Routes")
+#    window = tk.Tk()
+#    window.title("Optimized Delivery Routes")
 
     fig, ax = plt.subplots(figsize=(6, 5))
 
@@ -595,15 +595,15 @@ def plot_solution(solution):
     ax.set_ylabel("Y")
     ax.legend()
     ax.grid(True)
-
-    canvas = FigureCanvasTkAgg(fig, master=window)
-    canvas.draw()
-    canvas.get_tk_widget().pack()
-
-    window.mainloop()
-    window.destroy()
-        
-    sys.exit()
+    plt.show()
+#    canvas = FigureCanvasTkAgg(fig, master=window)
+#    canvas.draw()
+#    canvas.get_tk_widget().pack()
+#
+#    window.mainloop()
+#    window.destroy()
+#        
+#    sys.exit()
 
 ## Main Function to run the program
 def main():
