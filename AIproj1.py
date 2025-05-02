@@ -12,8 +12,6 @@ import random
 import math
 import copy
 from pprint import pprint
-import tkinter as tk
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 import sys
 
@@ -599,14 +597,6 @@ def plot_solution(solution):
     ax.legend()
     ax.grid(True)
     plt.show()
-#    canvas = FigureCanvasTkAgg(fig, master=window)
-#    canvas.draw()
-#    canvas.get_tk_widget().pack()
-#
-#    window.mainloop()
-#    window.destroy()
-#        
-#    sys.exit()
 
 ## Main Function to run the program
 def main():
