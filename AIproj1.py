@@ -184,7 +184,7 @@ def simulated_annealing(initial_solution, vehicles):
     iterations_per_temp = 100
 
     current_solution = initial_solution
-    current_cost = total_distance(current_solution)
+    current_cost = evaluate_individual(current_solution)
     best_solution = current_solution
     best_cost = current_cost
 
@@ -195,7 +195,7 @@ def simulated_annealing(initial_solution, vehicles):
             newsolution = generate_newsolution(current_solution, vehicles)
             if not validate_solution(newsolution, vehicles):
                 continue  # skip invalid solution
-            newsolution_cost = total_distance(newsolution)
+            newsolution_cost = evaluate_individual(newsolution)
 
             cost_diff = newsolution_cost - current_cost
 
@@ -216,8 +216,11 @@ def display_menu():
     choise= int(input( "Welcome, Choose an Algorithm from the following:\n1-simulated annealing.\n2-Genetic algorithm.\n"))
 
     if (choise==1):  
-        take_package_data()
-        take_vehicle_data()
+#        take_package_data()
+#        take_vehicle_data()
+        upload_data()
+        if not validate_input(packages, vehicles):
+            return None
         print("You chose Simulated Annealing.")
         initial = generate_random_initial_state(packages, vehicles)
         print("\nInitial solution:")
@@ -247,7 +250,7 @@ def upload_data():
         for line in file:
             data = line.strip().split()
             # create object with packet data
-            pkg = Package(index, int(data[2]), int(data[3]), int(data[1]), int(data[0]))
+            pkg = Package(index, int(data[2]), int(data[3]), float(data[1]), int(data[0]))
             packages.append(pkg)
             index += 1
     
