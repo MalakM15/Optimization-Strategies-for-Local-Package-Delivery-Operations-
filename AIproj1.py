@@ -38,10 +38,10 @@ class Vehicle:
 packages =[]
 vehicles =[]
  # file names
-#packages_file = "C:\\Users\\HP\\Documents\\GitHub\\Artificial_Intelligence\\packages.txt"
-#vehicles_file = "C:\\Users\\HP\\Documents\\GitHub\\Artificial_Intelligence\\vehicles.txt"
-packages_file = "C:\\Users\\user\\Documents\\GitHub\\Optimization-Strategies-for-Local-Package-Delivery-Operations-\\packages.txt"
-vehicles_file = "C:\\Users\\user\\Documents\\GitHub\\Optimization-Strategies-for-Local-Package-Delivery-Operations-\\vehicles.txt"
+packages_file = "C:\\Users\\HP\\Documents\\GitHub\\Artificial_Intelligence\\packages.txt"
+vehicles_file = "C:\\Users\\HP\\Documents\\GitHub\\Artificial_Intelligence\\vehicles.txt"
+# packages_file = "C:\\Users\\user\\Documents\\GitHub\\Optimization-Strategies-for-Local-Package-Delivery-Operations-\\packages.txt"
+# vehicles_file = "C:\\Users\\user\\Documents\\GitHub\\Optimization-Strategies-for-Local-Package-Delivery-Operations-\\vehicles.txt"
 
  # genetic algorithm parameters
 POPULATION_SIZE = 75 #75
@@ -535,7 +535,6 @@ def genetic_algorithm(packages, vehicles):
     if not validate_input(packages, vehicles):
         return None
     
-    history = [] # preserve history of best solutions
     # generate initial population
     population = generate_population(packages, vehicles)
     population = evaluate_population(population)
@@ -545,7 +544,9 @@ def genetic_algorithm(packages, vehicles):
 
     # record initial best solution
     best_solution = report(population, population[0])
-    history.append(best_solution)
+    print("-- INITIAL BEST SOLUTION --")
+    print_individual(best_solution[0])
+    print(f"Opltimal Total Cost: {best_solution[1]:.2f}")
 
     # create as many required generations to get the best solution
     for generation in range(1, GENERATIONS_COUNT):
@@ -562,19 +563,13 @@ def genetic_algorithm(packages, vehicles):
         population = evaluate_population(population)
         best_solution = report(population, best_solution)
 
-        history.append(best_solution) # record
-
     print("\n-- BEST SOLUTION --")
     print_individual(best_solution[0])
     print(f"Cost: {best_solution[1]:.2f}")
     plot_solution(best_solution[0]) 
 
-
+## Function to plot route taken by vehicles of best solution
 def plot_solution(solution):
-
-    
-#    window = tk.Tk()
-#    window.title("Optimized Delivery Routes")
 
     fig, ax = plt.subplots(figsize=(6, 5))
 
@@ -600,7 +595,7 @@ def plot_solution(solution):
 
 ## Main Function to run the program
 def main():
-    random.seed(5)
+    # random.seed(5)
     display_menu()
 
 if __name__ == "__main__":
